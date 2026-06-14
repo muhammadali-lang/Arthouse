@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ART HOUSE — Система учёта</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="data:application/json,{
+  %22name%22:%22ART HOUSE — Система учёта%22,
+  %22short_name%22:%22ART HOUSE%22,
+  %22description%22:%22Система учёта товаров и продаж%22,
+  %22start_url%22:%22.%22,
+  %22display%22:%22standalone%22,
+  %22background_color%22:%22%23111218%22,
+  %22theme_color%22:%22%23C8A84B%22,
+  %22orientation%22:%22portrait%22,
+  %22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23111218'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle'%3E🪟%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22}]
+}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ART HOUSE">
+<meta name="theme-color" content="#C8A84B">
+<meta name="application-name" content="ART HOUSE">
+<style>
+:root{
+  --gold:#C8A84B;--gold2:#E8D08A;--gold3:#8B6914;--glow:rgba(200,168,75,.15);
+  --dark:#111218;--dark2:#181A24;--dark3:#1E2130;
+  --surf:#22253A;--surf2:#2A2E45;--surf3:#313659;
+  --text:#F2EDD8;--text2:#A8A090;--text3:#6E6A5E;
+  --green:#3FC27A;--red:#E05252;--blue:#4C9BE8;--orange:#E08833;--purple:#9B6DE8;
+  --r:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Mulish',sans-serif;background:var(--dark);color:var(--text);}
+
+/* APP */
+#app{height:100%;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 20px;background:var(--dark2);border-bottom:1px solid rgba(200,168,75,.1);flex-shrink:0;}
+.tb-l{display:flex;align-items:center;gap:12px;}
+.tb-logo{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:18px;letter-spacing:2px;}
+.tb-pg{font-size:13px;font-weight:700;color:var(--text2);}
+.tb-r{display:flex;align-items:center;gap:9px;}
+.dtag{font-size:11px;color:var(--text2);}
+.sync{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:700;background:rgba(63,194,122,.11);color:var(--green);}
+
+/* TABS */
+.tabs{display:flex;gap:1px;padding:9px 20px 0;background:var(--dark2);border-bottom:1px solid rgba(200,168,75,.1);flex-shrink:0;overflow-x:auto;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:8px 16px;border-radius:7px 7px 0 0;cursor:pointer;font-size:13px;font-weight:700;color:var(--text2);white-space:nowrap;border:1px solid transparent;border-bottom:none;transition:all .18s;}
+.tab:hover{color:var(--gold2);}
+.tab.on{background:var(--surf);color:var(--gold);border-color:rgba(200,168,75,.14);}
+
+/* CONTENT */
+#ct{flex:1;overflow-y:auto;padding:18px 20px;background:var(--dark3);}
+#ct::-webkit-scrollbar{width:4px;}
+#ct::-webkit-scrollbar-thumb{background:rgba(200,168,75,.15);border-radius:2px;}
+.page{display:none;animation:fi .2s ease;}
+.page.on{display:block;}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* CARDS */
+.card{background:var(--surf);border-radius:var(--r);border:1px solid rgba(200,168,75,.08);padding:16px;margin-bottom:14px;}
+.card-t{font-size:13.5px;font-weight:700;color:var(--gold2);margin-bottom:13px;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.sc{background:var(--surf);border-radius:var(--r);padding:14px 16px;border:1px solid rgba(200,168,75,.08);position:relative;overflow:hidden;}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sc.g::after{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.sc.gr::after{background:var(--green);}
+.sc.bl::after{background:var(--blue);}
+.sc.rd::after{background:var(--red);}
+.sc-lb{font-size:10px;color:var(--text2);letter-spacing:.7px;text-transform:uppercase;margin-bottom:5px;}
+.sc-val{font-size:20px;font-weight:800;}
+.sc-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.sc-ic{position:absolute;right:12px;top:12px;font-size:24px;opacity:.09;}
+
+/* TABLE */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{padding:8px 11px;text-align:left;font-size:10px;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid rgba(200,168,75,.08);}
+td{padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(200,168,75,.03);}
+.badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;}
+.b-red{background:rgba(224,82,82,.13);color:var(--red);border:1px solid rgba(224,82,82,.2);}
+.b-green{background:rgba(63,194,122,.11);color:var(--green);border:1px solid rgba(63,194,122,.18);}
+.b-orange{background:rgba(224,136,51,.12);color:var(--orange);border:1px solid rgba(224,136,51,.18);}
+.b-blue{background:rgba(76,155,232,.11);color:var(--blue);border:1px solid rgba(76,155,232,.18);}
+.b-gold{background:rgba(200,168,75,.11);color:var(--gold);border:1px solid rgba(200,168,75,.18);}
+.b-purple{background:rgba(155,109,232,.11);color:var(--purple);border:1px solid rgba(155,109,232,.18);}
+
+/* FORMS */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.fg label{font-size:11px;color:var(--text2);font-weight:700;letter-spacing:.3px;}
+input,select,textarea{background:var(--dark2);border:1px solid rgba(200,168,75,.18);border-radius:8px;padding:8px 11px;color:var(--text);font-family:'Mulish',sans-serif;font-size:13px;width:100%;transition:border .15s;}
+input:focus,select:focus{outline:none;border-color:var(--gold);}
+select option{background:var(--dark2);}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.full{grid-column:1/-1;}
+.btn{padding:8px 16px;border-radius:9px;border:none;cursor:pointer;font-family:'Mulish',sans-serif;font-weight:700;font-size:13px;transition:all .18s;}
+.btn-gold{background:var(--gold);color:#111;}
+.btn-gold:hover{background:var(--gold2);}
+.btn-green{background:var(--green);color:#111;font-weight:800;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-out{background:transparent;border:1px solid var(--gold);color:var(--gold);}
+.btn-sm{padding:5px 10px;font-size:11.5px;border-radius:7px;}
+
+/* MODAL */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.mbg.open{display:flex;}
+.modal{background:var(--dark2);border-radius:14px;border:1px solid rgba(200,168,75,.18);padding:22px;width:560px;max-width:96vw;max-height:90vh;overflow-y:auto;position:relative;}
+.modal::-webkit-scrollbar{width:4px;}
+.modal::-webkit-scrollbar-thumb{background:rgba(200,168,75,.18);border-radius:2px;}
+.modal-t{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:21px;margin-bottom:15px;}
+.modal-x{position:absolute;top:13px;right:13px;background:var(--surf2);border:none;color:var(--text2);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
+.modal-act{display:flex;gap:8px;justify-content:flex-end;margin-top:15px;padding-top:12px;border-top:1px solid rgba(200,168,75,.08);}
+
+/* PROFIT BOX */
+.pbox{background:rgba(63,194,122,.07);border:1px solid rgba(63,194,122,.15);border-radius:9px;padding:11px 14px;}
+.pbox .pr{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;}
+.pbox .pt{border-top:1px solid rgba(63,194,122,.15);margin-top:6px;padding-top:6px;font-weight:800;font-size:14px;color:var(--green);}
+.ebox{background:rgba(224,82,82,.06);border:1px solid rgba(224,82,82,.13);border-radius:9px;padding:11px 14px;}
+
+/* SEARCH */
+.srch{display:flex;gap:8px;margin-bottom:12px;}
+.srch input{flex:1;}
+.drop{background:var(--dark3);border:1px solid rgba(200,168,75,.2);border-radius:8px;margin-top:4px;display:none;max-height:180px;overflow-y:auto;}
+.di{padding:9px 12px;cursor:pointer;font-size:12.5px;border-bottom:1px solid rgba(255,255,255,.04);}
+.di:hover{background:var(--glow);color:var(--gold);}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
+.chip{background:var(--surf2);border-radius:7px;padding:5px 11px;font-size:12px;}
+.chip b{color:var(--gold);}
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+.sec-hdr h3{font-family:'Cormorant Garamond',serif;color:var(--gold2);font-size:19px;}
+.empty{text-align:center;padding:32px;color:var(--text2);font-size:13px;}
+.empty .ei{font-size:32px;margin-bottom:8px;}
+.profit-pos{color:var(--green);font-weight:700;}
+.profit-neg{color:var(--red);font-weight:700;}
+.act-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 5px;border-radius:5px;}
+.act-btn:hover{background:var(--surf3);}
+
+/* WELCOME */
+.wbanner{background:linear-gradient(135deg,rgba(200,168,75,.08),rgba(49,54,89,.2));border:1px solid rgba(200,168,75,.12);border-radius:var(--r);padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+.wbanner-ic{font-size:42px;flex-shrink:0;}
+.wbanner h2{font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:22px;}
+.wbanner p{color:var(--text2);font-size:12px;margin-top:2px;}
+
+/* CHART */
+.cbars{display:flex;align-items:flex-end;gap:4px;height:50px;margin-bottom:4px;}
+.cbar{flex:1;background:rgba(200,168,75,.18);border-radius:3px 3px 0 0;transition:all .3s;}
+.cbar:hover{background:var(--gold);}
+.clabels{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);}
+
+/* PARTS SELECTOR в продаже */
+.parts-section{background:rgba(155,109,232,.06);border:1px solid rgba(155,109,232,.18);border-radius:10px;padding:14px;margin-top:12px;}
+.parts-section-title{font-size:12px;font-weight:800;color:var(--purple);margin-bottom:10px;letter-spacing:.5px;}
+.part-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surf2);border-radius:8px;margin-bottom:7px;}
+.part-row-name{flex:1;font-size:13px;font-weight:600;}
+.part-row-stock{font-size:11px;color:var(--text2);white-space:nowrap;}
+.part-row input[type=number]{width:85px;padding:6px 9px;font-size:13px;text-align:center;}
+.part-row-unit{font-size:11px;color:var(--text2);width:30px;}
+
+/* TOP */
+.top-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.top-item:last-child{border-bottom:none;}
+.top-rank{width:20px;height:20px;border-radius:50%;background:var(--gold3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--gold2);flex-shrink:0;}
+.top-bar-w{flex:1;height:5px;background:var(--surf3);border-radius:3px;overflow:hidden;}
+.top-bar{height:100%;background:linear-gradient(90deg,var(--gold3),var(--gold));border-radius:3px;}
+
+/* CAT TABS */
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.ct-btn{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(200,168,75,.18);color:var(--text2);background:var(--surf2);transition:all .15s;}
+.ct-btn.on,.ct-btn:hover{background:var(--gold);color:#111;border-color:var(--gold);}
+
+@media(max-width:800px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .two,.fgrid{grid-template-columns:1fr;}
+  #ct{padding:12px;}
+  .tab{padding:7px 11px;font-size:12px;}
+}
+</style>
+</head>
+<body>
+<!-- ЭКРАН ПАРОЛЯ -->
+<div id="passScreen" style="position:fixed;inset:0;background:#111218;display:flex;align-items:center;justify-content:center;z-index:9999;">
+  <div style="background:#181A24;border:1px solid rgba(200,168,75,.25);border-radius:20px;padding:40px 30px;width:340px;max-width:92vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div style="font-size:56px;margin-bottom:10px;">🪟</div>
+    <div style="font-family:'Cormorant Garamond',serif;color:#C8A84B;font-size:26px;letter-spacing:3px;margin-bottom:4px;">ART HOUSE</div>
+    <div style="font-size:12px;color:#A8A090;margin-bottom:28px;letter-spacing:1px;">СИСТЕМА УЧЁТА ТОВАРОВ И ПРОДАЖ</div>
+    <input type="password" id="passInput" placeholder="Введите пароль..." 
+      style="background:#1E2130;border:1px solid rgba(200,168,75,.25);border-radius:10px;padding:13px 16px;color:#F2EDD8;font-family:Mulish,sans-serif;font-size:16px;width:100%;margin-bottom:12px;text-align:center;letter-spacing:2px;"
+      onkeydown="if(event.key==='Enter')checkPass()">
+    <button onclick="checkPass()" style="width:100%;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#C8A84B,#E8D08A);color:#111;font-family:Mulish,sans-serif;font-weight:800;font-size:15px;cursor:pointer;letter-spacing:1px;">ВОЙТИ →</button>
+    <div id="passErr" style="color:#E05252;font-size:13px;margin-top:12px;display:none;font-weight:700;">❌ Неверный пароль! Попробуйте снова.</div>
+  </div>
+</div>
+
+<div id="app" onclick="closeDropOnOutside(event)" style="display:none;">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-l">
+      <div class="tb-logo">🪟 ART HOUSE</div>
+      <div class="tb-pg" id="tbPg"></div>
+    </div>
+    <div class="tb-r">
+      <div class="dtag" id="dtag"></div>
+      <span class="sync" id="syncEl">● Сохранено</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab on" onclick="showTab('dash',this)">🏠 Главная</div>
+    <div class="tab" onclick="showTab('sell',this)">🛒 Продажи</div>
+    <div class="tab" onclick="showTab('products',this)">📦 Товары</div>
+    <div class="tab" onclick="showTab('parts',this)">🔩 Запчасти</div>
+    <div class="tab" onclick="showTab('stock',this)">🏭 Склад</div>
+    <div class="tab" onclick="showTab('expenses',this)">💸 Расходы</div>
+    <div class="tab" onclick="showTab('reports',this)">📊 Отчёты</div>
+    <div class="tab" onclick="showTab('settings',this)">⚙️ Настройки</div>
+  </div>
+
+  <div id="ct">
+
+    <!-- ═══ ГЛАВНАЯ ═══ -->
+    <div class="page on" id="p-dash">
+      <div class="wbanner"><div class="wbanner-ic">🪟</div><div><h2 id="wShop">ART HOUSE</h2><p>Система учёта штор, жалюзи и занавесок</p></div></div>
+      <div class="stats" id="dashStats"></div>
+      <div class="two">
+        <div class="card"><div class="card-t">📈 Выручка за 7 дней</div><div class="cbars" id="chartBars"></div><div class="clabels" id="chartLbls"></div></div>
+        <div class="card"><div class="card-t">⚠️ Товары заканчиваются</div><div id="lowProds"></div></div>
+      </div>
+      <div class="two">
+        <div class="card"><div class="card-t">🔩 Запчасти заканчиваются</div><div id="lowParts"></div></div>
+        <div class="card"><div class="card-t">🕐 Последние продажи</div>
+          <div class="tw"><table><thead><tr><th>Товар</th><th>Кол-во</th><th>Сумма</th><th>Прибыль</th><th>Продавец</th><th>Запчасти</th><th>Время</th></tr></thead>
+          <tbody id="dashSales"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ПРОДАЖИ ═══ -->
+    <div class="page" id="p-sell">
+      <div class="sec-hdr"><h3>🛒 Новая продажа</h3></div>
+      <div class="two">
+        <!-- ФОРМА ПРОДАЖИ -->
+        <div>
+          <div class="card">
+            <div class="card-t">1️⃣ Выберите товар</div>
+            <div class="fg">
+              <label>Поиск по коду или названию</label>
+              <input id="sel_search" placeholder="Например: -163 или Штора блэкаут..." oninput="sSearch(this.value)" autocomplete="off">
+              <div class="drop" id="sel_drop"></div>
+              <input type="hidden" id="sel_id">
+            </div>
+            <!-- Инфо о выбранном товаре -->
+            <div id="sel_info" style="display:none;background:rgba(200,168,75,.07);border:1px solid rgba(200,168,75,.15);border-radius:9px;padding:11px 14px;margin-bottom:12px;">
+              <div style="font-size:14px;font-weight:800;color:var(--gold)" id="si_name"></div>
+              <div style="display:flex;gap:16px;margin-top:5px;font-size:12px;color:var(--text2)">
+                <span>Остаток: <b style="color:var(--text)" id="si_stock"></b></span>
+                <span>Цена: <b style="color:var(--green)" id="si_price"></b></span>
+                <span>Ед.: <b style="color:var(--text)" id="si_unit"></b></span>
+              </div>
+            </div>
+
+            <div class="fgrid">
+              <div class="fg"><label>Количество / Метры *</label><input type="number" id="sel_qty" placeholder="0" oninput="calcSale()" min="0.01" step="0.01"></div>
+              <div class="fg"><label>Цена продажи (за ед.) *</label><input type="number" id="sel_price" placeholder="0" oninput="calcSale()"></div>
+              <div class="fg"><label>Имя продавца</label><input id="sel_seller" placeholder="Нодир, Алишер..."></div>
+              <div class="fg"><label>Клиент</label><input id="sel_client" placeholder="Имя клиента"></div>
+            </div>
+
+            <!-- ИТОГ -->
+            <div id="saleCalc" style="display:none;margin-bottom:12px;">
+              <div class="pbox">
+                <div class="pr"><span>Сумма продажи:</span><b id="sc_total" style="color:var(--text)"></b></div>
+                <div class="pr"><span>Себестоимость товара:</span><b id="sc_cost" style="color:var(--text2)"></b></div>
+                <div class="pr pt"><span>💰 Прибыль:</span><b id="sc_profit"></b></div>
+              </div>
+            </div>
+
+            <!-- ═══ ЗАПЧАСТИ СЕКЦИЯ ═══ -->
+            <div id="partsSection" style="display:none;margin-top:12px">
+              <div class="parts-section">
+                <div class="parts-section-title">🔩 ЗАПЧАСТИ — выберите что использовали (укажите 0 если не использовали)</div>
+                <div id="partRows"></div>
+              </div>
+            </div>
+
+            <button class="btn btn-green" style="width:100%;padding:12px;font-size:15px;margin-top:12px" onclick="saveSale()">✅ Записать продажу</button>
+          </div>
+        </div>
+
+        <!-- МОИ ПРОДАЖИ СЕГОДНЯ -->
+        <div>
+          <div class="card">
+            <div class="card-t">📋 Продажи сегодня</div>
+            <div id="todaySaleStats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
+            <div class="tw"><table><thead><tr><th>Товар</th><th>Кол-во</th><th>Сумма</th><th>Прибыль</th><th>Запчасти</th><th>Продавец</th><th>Время</th></tr></thead>
+            <tbody id="todaySalesTbody"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ТОВАРЫ ═══ -->
+    <div class="page" id="p-products">
+      <div class="sec-hdr"><h3>📦 Товары</h3><button class="btn btn-gold" onclick="openM('addProd')">+ Добавить товар</button></div>
+      <div class="cat-tabs" id="prodCatTabs"></div>
+      <div class="srch"><input id="prodSearch" placeholder="🔍 Поиск..." oninput="renderProds()"></div>
+      <div class="card" style="padding:0"><div class="tw"><table>
+        <thead><tr><th>Фото</th><th>Код</th><th>Название</th><th>Категория</th><th>Ед.</th><th>Себест.</th><th>Цена</th><th>Наценка</th><th>Остаток</th><th>Статус</th><th></th></tr></thead>
+        <tbody id="prodsTbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ═══ ЗАПЧАСТИ ═══ -->
+    <div class="page" id="p-parts">
+      <div class="sec-hdr"><h3>🔩 Запчасти</h3><button class="btn btn-gold" onclick="openM('addPart')">+ Добавить запчасть</button></div>
+      <div class="srch"><input id="partSearch" placeholder="🔍 Поиск..." oninput="renderParts()"></div>
+      <div class="card" style="padding:0"><div class="tw"><table>
+        <thead><tr><th>Код</th><th>Название</th><th>Категория</th><th>Ед.</th><th>Цена закуп.</th><th>Остаток</th><th>Мин. остаток</th><th>Статус</th><th></th></tr></thead>
+        <tbody id="partsTbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ═══ СКЛАД ═══ -->
+    <div class="page" id="p-stock">
+      <div class="sec-hdr"><h3>🏭 Склад / Поступления</h3></div>
+      <div class="two">
+        <div class="card">
+          <div class="card-t">📦 Приход товара</div>
+          <div class="fg"><label>Товар *</label><select id="wk_prod" onchange="fillWI()"><option value="">— Выберите —</option></select></div>
+          <div class="fgrid">
+            <div class="fg"><label>Количество *</label><input type="number" id="wk_qty" placeholder="0"></div>
+            <div class="fg"><label>Цена закупки (за ед.)</label><input type="number" id="wk_cost" placeholder="0"></div>
+            <div class="fg"><label>Поставщик</label><input id="wk_sup" placeholder="Поставщик"></div>
+            <div class="fg"><label>Дата</label><input type="date" id="wk_date"></div>
+          </div>
+          <button class="btn btn-gold" style="width:100%;padding:10px" onclick="saveStockIn('prod')">📦 Записать приход товара</button>
+        </div>
+        <div class="card">
+          <div class="card-t">🔩 Приход запчастей</div>
+          <div class="fg"><label>Запчасть *</label><select id="wp_part" onchange="fillWP()"><option value="">— Выберите —</option></select></div>
+          <div class="fgrid">
+            <div class="fg"><label>Количество *</label><input type="number" id="wp_qty" placeholder="0"></div>
+            <div class="fg"><label>Цена закупки (за ед.)</label><input type="number" id="wp_cost" placeholder="0"></div>
+            <div class="fg"><label>Поставщик</label><input id="wp_sup" placeholder="Поставщик"></div>
+            <div class="fg"><label>Дата</label><input type="date" id="wp_date"></div>
+          </div>
+          <button class="btn btn-gold" style="width:100%;padding:10px" onclick="saveStockIn('part')">🔩 Записать приход запчасти</button>
+        </div>
+      </div>
+      <div class="two">
+        <div class="card">
+          <div class="card-t">📊 Остатки товаров</div>
+          <div class="tw"><table><thead><tr><th>Код</th><th>Название</th><th>Ед.</th><th>Остаток</th><th>Статус</th></tr></thead><tbody id="wProdTbody"></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-t">🔩 Остатки запчастей</div>
+          <div class="tw"><table><thead><tr><th>Название</th><th>Ед.</th><th>Остаток</th><th>Статус</th></tr></thead><tbody id="wPartTbody"></tbody></table></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">📋 История поступлений</div>
+        <div class="chips" id="stockChips"></div>
+        <div class="tw"><table><thead><tr><th>Дата</th><th>Тип</th><th>Название</th><th>Кол-во</th><th>Ед.</th><th>Цена</th><th>Итого</th><th>Поставщик</th></tr></thead><tbody id="stockTbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ═══ РАСХОДЫ ═══ -->
+    <div class="page" id="p-expenses">
+      <div class="sec-hdr"><h3>💸 Расходы</h3><button class="btn btn-gold" onclick="openM('addExp')">+ Добавить расход</button></div>
+      <div class="chips" id="expChips"></div>
+      <div class="card" style="padding:0"><div class="tw"><table>
+        <thead><tr><th>Дата</th><th>Категория</th><th>Описание</th><th>Сумма</th><th></th></tr></thead>
+        <tbody id="expTbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ═══ ОТЧЁТЫ ═══ -->
+    <div class="page" id="p-reports">
+      <h3 style="font-family:'Cormorant Garamond',serif;color:var(--gold2);margin-bottom:14px;">📊 Финансовые отчёты</h3>
+      <div class="two">
+        <div>
+          <div class="card"><div class="card-t">☀️ Сегодня</div><div id="rToday"></div></div>
+          <div class="card"><div class="card-t">📅 Этот месяц</div><div id="rMonth"></div></div>
+          <div class="card"><div class="card-t">📆 Всё время</div><div id="rAll"></div></div>
+        </div>
+        <div>
+          <div class="card"><div class="card-t">💸 Расходы месяца</div><div id="rExp"></div></div>
+          <div class="card"><div class="card-t">🏆 Топ товары по прибыли</div><div id="rTop"></div></div>
+          <div class="card"><div class="card-t">👥 По продавцам</div><div id="rSellers"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ НАСТРОЙКИ ═══ -->
+    <div class="page" id="p-settings">
+      <h3 style="font-family:'Cormorant Garamond',serif;color:var(--gold2);margin-bottom:14px;">⚙️ Настройки</h3>
+      <div class="two">
+        <div class="card">
+          <div class="card-t">🏪 Магазин</div>
+          <div class="fgrid">
+            <div class="fg"><label>Название магазина</label><input id="s_shop" value="ART HOUSE"></div>
+            <div class="fg"><label>Валюта</label>
+              <select id="s_cur"><option value="сомонӣ">Сомонӣ (TJS)</option><option value="сом">Сом (KGS)</option><option value="$">Доллар ($)</option><option value="₽">Рубль (₽)</option></select>
+            </div>
+            <div class="fg"><label>Мин. остаток товара</label><input type="number" id="s_min" value="10"></div>
+            <div class="fg"><label>Мин. остаток запчастей</label><input type="number" id="s_minp" value="5"></div>
+          </div>
+          <button class="btn btn-gold" onclick="saveSettings()">💾 Сохранить</button>
+        </div>
+        <div class="two" style="display:block">
+          <div class="card">
+            <div class="card-t">🗂 Категории товаров</div>
+            <div id="catListProds" style="margin-bottom:10px"></div>
+            <div style="display:flex;gap:7px"><input id="newCatP" placeholder="Новая категория..."><button class="btn btn-gold btn-sm" onclick="addCat('prod')">+</button></div>
+          </div>
+          <div class="card">
+            <div class="card-t">🔩 Категории запчастей</div>
+            <div id="catListParts" style="margin-bottom:10px"></div>
+            <div style="display:flex;gap:7px"><input id="newCatPt" placeholder="Новая категория..."><button class="btn btn-gold btn-sm" onclick="addCat('part')">+</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(200,168,75,.2)">
+        <div class="card-t">🔐 Изменить пароль входа</div>
+        <div class="fgrid">
+          <div class="fg"><label>Новый пароль</label><input type="password" id="newPass1" placeholder="Новый пароль..."></div>
+          <div class="fg"><label>Повторите пароль</label><input type="password" id="newPass2" placeholder="Повторите..."></div>
+        </div>
+        <div style="margin-top:11px;display:flex;align-items:center;gap:10px">
+          <button class="btn btn-gold" onclick="changePass()">🔐 Сохранить пароль</button>
+          <span style="font-size:12px;color:var(--text2)">Текущий пароль: <b style="color:var(--gold)" id="curPassShow">arthouse2024</b></span>
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(224,82,82,.18)">
+        <div class="card-t" style="color:var(--red)">⚠️ Опасная зона</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Удалит все данные безвозвратно!</p>
+        <button class="btn btn-red" onclick="clearAll()">🗑 Удалить все данные</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- ДОБАВИТЬ ТОВАР -->
+<div class="mbg" id="m-addProd">
+  <div class="modal">
+    <button class="modal-x" onclick="closeM('addProd')">✕</button>
+    <div class="modal-t">📦 Добавить товар</div>
+    <div class="fgrid">
+      <div class="fg"><label>Код товара</label><input id="ap_code" placeholder="-163"></div>
+      <div class="fg"><label>Название *</label><input id="ap_name" placeholder="Штора блэкаут синяя"></div>
+      <div class="fg"><label>Категория</label><select id="ap_cat"></select></div>
+      <div class="fg"><label>Единица измерения</label>
+        <select id="ap_unit"><option value="м">Метр (м)</option><option value="м²">м²</option><option value="шт">Штука (шт)</option><option value="рулон">Рулон</option><option value="комплект">Комплект</option></select>
+      </div>
+      <div class="fg"><label>Закупочная цена (за ед.)</label><input type="number" id="ap_cost" placeholder="0"></div>
+      <div class="fg"><label>Цена продажи (за ед.)</label><input type="number" id="ap_price" placeholder="0"></div>
+      <div class="fg"><label>Сколько купили (метры/м²/шт) *</label><input type="number" id="ap_stock" placeholder="0" step="0.01"></div>
+      <div class="fg"><label>Поставщик</label><input id="ap_sup" placeholder="Поставщик"></div>
+      <div class="fg full"><label>Фото товара</label>
+        <input type="file" id="ap_photo" accept="image/*" onchange="previewPhoto('ap_photo','ap_preview')" style="padding:6px">
+        <div id="ap_preview" style="margin-top:8px;display:none">
+          <img id="ap_preview_img" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,168,75,.2)">
+        </div>
+      </div>
+    </div>
+    <div class="modal-act">
+      <button class="btn btn-out" onclick="closeM('addProd')">Отмена</button>
+      <button class="btn btn-gold" onclick="saveProd()">✅ Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- РЕДАКТИРОВАТЬ ТОВАР -->
+<div class="mbg" id="m-editProd">
+  <div class="modal">
+    <button class="modal-x" onclick="closeM('editProd')">✕</button>
+    <div class="modal-t">✏️ Редактировать товар</div>
+    <input type="hidden" id="ep_id">
+    <div class="fgrid">
+      <div class="fg"><label>Код</label><input id="ep_code"></div>
+      <div class="fg"><label>Название</label><input id="ep_name"></div>
+      <div class="fg"><label>Категория</label><select id="ep_cat"></select></div>
+      <div class="fg"><label>Единица</label><select id="ep_unit"><option value="м">м</option><option value="м²">м²</option><option value="шт">шт</option><option value="рулон">рулон</option><option value="комплект">комплект</option></select></div>
+      <div class="fg"><label>Закупочная цена</label><input type="number" id="ep_cost"></div>
+      <div class="fg"><label>Цена продажи</label><input type="number" id="ep_price"></div>
+    </div>
+    <div class="fg full" style="margin-top:10px"><label>Фото товара</label>
+      <input type="file" id="ep_photo" accept="image/*" onchange="previewPhoto('ep_photo','ep_preview')" style="padding:6px">
+      <div id="ep_preview" style="margin-top:8px">
+        <img id="ep_preview_img" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,168,75,.2);display:none">
+      </div>
+    </div>
+    <div class="modal-act">
+      <button class="btn btn-out" onclick="closeM('editProd')">Отмена</button>
+      <button class="btn btn-gold" onclick="updateProd()">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ДОБАВИТЬ ЗАПЧАСТЬ -->
+<div class="mbg" id="m-addPart">
+  <div class="modal">
+    <button class="modal-x" onclick="closeM('addPart')">✕</button>
+    <div class="modal-t">🔩 Добавить запчасть</div>
+    <div class="fgrid">
+      <div class="fg"><label>Код</label><input id="pt_code" placeholder="ZP-001"></div>
+      <div class="fg"><label>Название *</label><input id="pt_name" placeholder="Механизм жалюзи"></div>
+      <div class="fg"><label>Категория</label><select id="pt_cat"></select></div>
+      <div class="fg"><label>Единица измерения</label>
+        <select id="pt_unit"><option value="шт">Штука (шт)</option><option value="пара">Пара</option><option value="пачка">Пачка</option><option value="м">Метр (м)</option><option value="кг">Кг</option><option value="комплект">Комплект</option></select>
+      </div>
+      <div class="fg"><label>Закупочная цена (за ед.)</label><input type="number" id="pt_cost" placeholder="0" step="0.01"></div>
+      <div class="fg"><label>Сколько купили (остаток) *</label><input type="number" id="pt_stock" placeholder="0" step="0.01"></div>
+      <div class="fg"><label>Мин. остаток (сигнал тревоги)</label><input type="number" id="pt_min" placeholder="5"></div>
+      <div class="fg"><label>Поставщик</label><input id="pt_sup" placeholder="Поставщик"></div>
+    </div>
+    <div class="modal-act">
+      <button class="btn btn-out" onclick="closeM('addPart')">Отмена</button>
+      <button class="btn btn-gold" onclick="savePart()">✅ Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ДОБАВИТЬ РАСХОД -->
+<div class="mbg" id="m-addExp">
+  <div class="modal">
+    <button class="modal-x" onclick="closeM('addExp')">✕</button>
+    <div class="modal-t">💸 Добавить расход</div>
+    <div class="fgrid">
+      <div class="fg"><label>Категория</label>
+        <select id="ex_cat"><option>Аренда</option><option>Зарплата</option><option>Транспорт</option><option>Коммунальные</option><option>Реклама</option><option>Закупка</option><option>Прочее</option></select>
+      </div>
+      <div class="fg"><label>Сумма *</label><input type="number" id="ex_amt" placeholder="0"></div>
+      <div class="fg full"><label>Описание</label><input id="ex_desc" placeholder="Описание расхода..."></div>
+      <div class="fg"><label>Дата</label><input type="date" id="ex_date"></div>
+    </div>
+    <div class="modal-act">
+      <button class="btn btn-out" onclick="closeM('addExp')">Отмена</button>
+      <button class="btn btn-gold" onclick="saveExp()">✅ Записать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ПОДТВЕРЖДЕНИЕ -->
+<div class="mbg" id="m-confirm">
+  <div class="modal" style="width:340px">
+    <div class="modal-t" style="color:var(--red)">⚠️ Подтверждение</div>
+    <p id="confirmMsg" style="font-size:13px;color:var(--text2);margin-bottom:14px"></p>
+    <div class="modal-act">
+      <button class="btn btn-out" onclick="closeM('confirm')">Отмена</button>
+      <button class="btn btn-red" id="confirmBtn">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════ DATABASE ══════════ */
+let DB={
+  products:[], parts:[], sales:[], stockIn:[], expenses:[],
+  catProds:['Шторы','Жалюзи','Занавески','Ролл-шторы','Карнизы'],
+  catParts:['Механизмы','Карнизы','Крепёж','Фурнитура','Прочее'],
+  settings:{shop:'ART HOUSE',cur:'сомонӣ',minStock:10,minPart:5},
+  seq:{p:1,pt:1,s:1,sk:1,e:1}
+};
+// ═══ JSONBIN ONLINE STORAGE ═══
+const MASTER_KEY='$2a$10$nohES0Cxm1cqns6EQTAWoeY28Pd2sSgx7su01CNk6SLQ.tU1QufMO';
+const BIN_NAME='arthouse-db';
+let BIN_ID=localStorage.getItem('ah5_binid')||'6a1b9614ddf5aa59f77a49f7';
+let saveTimeout=null;
+
+function syncEl(txt,ok){const el=document.getElementById('syncEl');if(el){el.textContent=txt;el.className=ok?'sync':'sync';el.style.color=ok?'var(--green)':'var(--orange)';}}
+
+async function save(){
+  clearTimeout(saveTimeout);
+  saveTimeout=setTimeout(async()=>{
+    syncEl('● Сохранение...',false);
+    try{
+      if(!BIN_ID){
+        // Создаём новый bin
+        const r=await fetch('https://api.jsonbin.io/v3/b',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY,'X-Bin-Name':BIN_NAME,'X-Bin-Private':'false'},
+          body:JSON.stringify(DB)
+        });
+        const d=await r.json();
+        BIN_ID=d.metadata.id;
+        localStorage.setItem('ah5_binid',BIN_ID);
+      } else {
+        // Обновляем существующий bin
+        await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID,{
+          method:'PUT',
+          headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY},
+          body:JSON.stringify(DB)
+        });
+      }
+      syncEl('● Сохранено ☁️',true);
+    }catch(e){
+      // Если нет интернета — сохраняем локально
+      localStorage.setItem('ah5',JSON.stringify(DB));
+      syncEl('● Локально',false);
+    }
+  },800);
+}
+
+async function load(){
+  syncEl('● Загрузка...',false);
+  try{
+    if(!BIN_ID){
+      // Ищем существующий bin по имени
+      const r=await fetch('https://api.jsonbin.io/v3/b?page=1',{
+        headers:{'X-Master-Key':MASTER_KEY}
+      });
+      // Если не нашли — начинаем с пустой базы
+      const local=localStorage.getItem('ah5');
+      if(local)DB=JSON.parse(local);
+      syncEl('● Готово',true);
+      return;
+    }
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{
+      headers:{'X-Master-Key':MASTER_KEY}
+    });
+    const d=await r.json();
+    if(d.record)DB=d.record;
+    syncEl('● Синхронизировано ☁️',true);
+  }catch(e){
+    const local=localStorage.getItem('ah5');
+    if(local)DB=JSON.parse(local);
+    syncEl('● Офлайн режим',false);
+  }
+}
+function C(n){return(+n||0).toLocaleString('ru-RU')+' '+DB.settings.cur;}
+function M(n){return(+n||0).toLocaleString('ru-RU');}
+function today(){return new Date().toISOString().split('T')[0];}
+function nowStr(){return new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function uid(k){const id=k+DB.seq[k];DB.seq[k]++;return id;}
+
+/* ══════════ TABS ══════════ */
+let curTab='dash';
+function showTab(id, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  if(el)el.classList.add('on');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  const pg=document.getElementById('p-'+id);if(pg)pg.classList.add('on');
+  curTab=id;
+  const titles={dash:'Главная',sell:'Продажи',products:'Товары',parts:'Запчасти',stock:'Склад',expenses:'Расходы',reports:'Отчёты',settings:'Настройки'};
+  document.getElementById('tbPg').textContent=titles[id]||'';
+  renderTab(id);
+}
+function renderTab(id){
+  const fn={dash:renderDash,sell:renderSell,products:renderProds,parts:renderParts,stock:renderStock,expenses:renderExp,reports:renderReports,settings:renderSettings};
+  if(fn[id])fn[id]();
+}
+
+/* ══════════ DASHBOARD ══════════ */
+function renderDash(){
+  const tod=today(),mn=tod.slice(0,7);
+  const ts=DB.sales.filter(s=>s.date===tod);
+  const ms=DB.sales.filter(s=>s.date.startsWith(mn));
+  const tP=ts.reduce((a,s)=>a+s.profit,0),tR=ts.reduce((a,s)=>a+s.total,0);
+  const mP=ms.reduce((a,s)=>a+s.profit,0),mR=ms.reduce((a,s)=>a+s.total,0);
+  const tE=DB.expenses.filter(e=>e.date===tod).reduce((a,e)=>a+e.amount,0);
+  document.getElementById('wShop').textContent=DB.settings.shop;
+  document.getElementById('dashStats').innerHTML=`
+    <div class="sc g"><div class="sc-lb">Прибыль сегодня</div><div class="sc-val">${C(tP)}</div><div class="sc-sub">🛒 ${ts.length} продаж</div><div class="sc-ic">💰</div></div>
+    <div class="sc gr"><div class="sc-lb">Выручка сегодня</div><div class="sc-val">${C(tR)}</div><div class="sc-sub">📅 Месяц: ${C(mR)}</div><div class="sc-ic">🛒</div></div>
+    <div class="sc bl"><div class="sc-lb">Прибыль за месяц</div><div class="sc-val">${C(mP)}</div><div class="sc-sub">📦 ${DB.products.length} товаров</div><div class="sc-ic">📊</div></div>
+    <div class="sc rd"><div class="sc-lb">Расходы сегодня</div><div class="sc-val">${C(tE)}</div><div class="sc-sub">🔩 ${DB.parts.length} запчастей</div><div class="sc-ic">💸</div></div>`;
+
+  const days=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split('T')[0];days.push({sum:DB.sales.filter(s=>s.date===ds).reduce((a,s)=>a+s.total,0),lb:['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()]});}
+  const mx=Math.max(...days.map(d=>d.sum),1);
+  document.getElementById('chartBars').innerHTML=days.map(d=>`<div class="cbar" style="height:${Math.max(6,(d.sum/mx)*100)}%" title="${C(d.sum)}"></div>`).join('');
+  document.getElementById('chartLbls').innerHTML=days.map(d=>`<span>${d.lb}</span>`).join('');
+
+  const lp=DB.products.filter(p=>p.stock<=DB.settings.minStock);
+  document.getElementById('lowProds').innerHTML=lp.length?lp.map(p=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div><div style="font-size:13px;font-weight:700">${p.name}</div><div style="font-size:10px;color:var(--text2)">${p.code||''}</div></div>
+      <span class="badge ${p.stock===0?'b-red':'b-orange'}">${M(p.stock)} ${p.unit}</span>
+    </div>`).join(''):'<div class="empty"><div>✅</div>Все товары в норме</div>';
+
+  const lt=DB.parts.filter(p=>p.stock<=(p.minStock||DB.settings.minPart));
+  document.getElementById('lowParts').innerHTML=lt.length?lt.map(p=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div><div style="font-size:13px;font-weight:700">${p.name}</div><div style="font-size:10px;color:var(--text2)">${p.category}</div></div>
+      <span class="badge ${p.stock===0?'b-red':'b-orange'}">${M(p.stock)} ${p.unit}</span>
+    </div>`).join(''):'<div class="empty"><div>✅</div>Все запчасти в норме</div>';
+
+  const rs=[...DB.sales].reverse().slice(0,6);
+  document.getElementById('dashSales').innerHTML=rs.length?rs.map(s=>{
+    const partsStr=(s.usedParts&&s.usedParts.length)
+      ?s.usedParts.map(u=>`<span style="display:inline-block;background:rgba(155,109,232,.12);color:var(--purple);border-radius:5px;padding:1px 5px;font-size:10px;margin:1px">${u.name}: ${M(u.qty)} ${u.unit}</span>`).join('')
+      :'—';
+    return`<tr><td><b>${s.pName}</b></td><td>${M(s.qty)} ${s.unit}</td><td>${C(s.total)}</td>
+    <td class="${s.profit>=0?'profit-pos':'profit-neg'}">${C(s.profit)}</td>
+    <td style="font-size:11px">${s.seller||'—'}</td>
+    <td style="max-width:160px">${partsStr}</td>
+    <td style="font-size:10px;color:var(--text2)">${s.datetime}</td></tr>`;
+  }).join('')
+    :'<tr><td colspan="6"><div class="empty"><div class="ei">🛒</div>Нет продаж</div></td></tr>';
+}
+
+/* ══════════ SELL PANEL ══════════ */
+function renderSell(){
+  const tod=today();
+  const ts=DB.sales.filter(s=>s.date===tod);
+  const tR=ts.reduce((a,s)=>a+s.total,0),tP=ts.reduce((a,s)=>a+s.profit,0);
+  document.getElementById('todaySaleStats').innerHTML=`
+    <div class="chip">Продаж: <b>${ts.length}</b></div>
+    <div class="chip">Выручка: <b>${C(tR)}</b></div>
+    <div class="chip">Прибыль: <b style="color:var(--green)">${C(tP)}</b></div>`;
+  const list=[...ts].reverse();
+  document.getElementById('todaySalesTbody').innerHTML=list.length?list.map(s=>{
+    const partsStr=(s.usedParts&&s.usedParts.length)
+      ?s.usedParts.map(u=>`<span style="display:inline-block;background:rgba(155,109,232,.15);color:var(--purple);border-radius:5px;padding:1px 6px;font-size:10px;margin:1px">${u.name}: ${M(u.qty)} ${u.unit}</span>`).join('')
+      :'<span style="color:var(--text3);font-size:10px">—</span>';
+    return`<tr><td><b>${s.pName}</b></td><td>${M(s.qty)} ${s.unit}</td><td>${C(s.total)}</td>
+    <td class="${s.profit>=0?'profit-pos':'profit-neg'}">${C(s.profit)}</td>
+    <td style="max-width:180px">${partsStr}</td>
+    <td style="font-size:11px">${s.seller||'—'}</td>
+    <td style="font-size:10px;color:var(--text2)">${s.datetime}</td></tr>`;
+  }).join('')
+    :'<tr><td colspan="6"><div class="empty"><div class="ei">🛒</div>Продаж нет</div></td></tr>';
+}
+
+/* Поиск товара при продаже */
+function sSearch(v){
+  const drop=document.getElementById('sel_drop');
+  if(!v.trim()){drop.style.display='none';return;}
+  // Search even if stock is 0 - show all products
+  const r=DB.products.filter(p=>p.name.toLowerCase().includes(v.toLowerCase())||(p.code||'').toLowerCase().includes(v.toLowerCase())).slice(0,10);
+  if(!r.length){
+    drop.innerHTML='<div class="di" style="color:var(--text2)">Товар не найден</div>';
+    drop.style.display='block';
+    return;
+  }
+  drop.innerHTML=r.map(p=>`<div class="di" onclick="selProd('${p.id}')" style="display:flex;align-items:center;gap:10px">
+    ${p.photo?`<img src="${p.photo}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0">`:'<div style="width:40px;height:40px;background:var(--surf3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📦</div>'}
+    <div><b>${p.name}</b>${p.code?' <span style="color:var(--text2);font-size:10px">('+p.code+')</span>':''}<br><span style="font-size:10px;color:var(--text2)">Остаток: ${M(p.stock)} ${p.unit} &nbsp;|&nbsp; Цена: ${C(p.price)}</span></div>
+  </div>`).join('');
+  drop.style.display='block';
+}
+
+// Photo preview
+function previewPhoto(inputId, previewId){
+  const file = document.getElementById(inputId).files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const preview = document.getElementById(previewId);
+    const img = document.getElementById(previewId+'_img');
+    if(preview) preview.style.display='block';
+    if(img){ img.src=e.target.result; img.style.display='block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function closeDropOnOutside(e){
+  if(!e.target.closest('#sel_search')&&!e.target.closest('#sel_drop')){
+    document.getElementById('sel_drop').style.display='none';
+  }
+}
+function selProd(id){
+  const p=DB.products.find(x=>x.id===id);if(!p)return;
+  document.getElementById('sel_id').value=id;
+  document.getElementById('sel_search').value=p.name+' '+(p.code||'');
+  document.getElementById('sel_drop').style.display='none';
+  document.getElementById('si_name').textContent=p.name;
+  document.getElementById('si_stock').textContent=M(p.stock)+' '+p.unit;
+  document.getElementById('si_price').textContent=C(p.price);
+  document.getElementById('si_unit').textContent=p.unit;
+  document.getElementById('sel_info').style.display='block';
+  document.getElementById('sel_price').value=p.price;
+  // Показываем все запчасти
+  showPartsSection();
+  calcSale();
+  // Force scroll down to see parts
+  setTimeout(()=>document.getElementById('partsSection').scrollIntoView({behavior:'smooth',block:'start'}),200);
+}
+
+function showPartsSection(){
+  const sec=document.getElementById('partsSection');
+  const rows=document.getElementById('partRows');
+  // Force show
+  sec.style.display='block';
+  sec.style.visibility='visible';
+  sec.style.opacity='1';
+  if(!DB.parts.length){
+    rows.innerHTML='<div style="color:var(--text2);font-size:13px;padding:8px">⚠️ Сначала добавьте запчасти в разделе 🔩 Запчасти</div>';
+    return;
+  }
+  rows.innerHTML=DB.parts.map(pt=>`
+    <div class="part-row">
+      <div class="part-row-name">${pt.name} <span style="font-size:10px;color:var(--text2)">(${pt.category})</span></div>
+      <div class="part-row-stock" style="color:${pt.stock<=0?'var(--red)':'var(--text2)'}">Есть: ${M(pt.stock)} ${pt.unit}</div>
+      <input type="number" id="part_qty_${pt.id}" value="0" min="0" step="0.01" placeholder="0" oninput="calcSale()">
+      <div class="part-row-unit">${pt.unit}</div>
+    </div>`).join('');
+  // Scroll to parts section
+  setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+function calcSale(){
+  const id=document.getElementById('sel_id').value;
+  const p=DB.products.find(x=>x.id===id);if(!p)return;
+  const qty=+document.getElementById('sel_qty').value||0;
+  const price=+document.getElementById('sel_price').value||0;
+  if(!qty||!price){document.getElementById('saleCalc').style.display='none';return;}
+  const total=qty*price;
+  const cost=qty*p.cost;
+  const profit=total-cost;
+  document.getElementById('sc_total').textContent=C(total);
+  document.getElementById('sc_cost').textContent=C(cost);
+  document.getElementById('sc_profit').textContent=C(profit);
+  document.getElementById('sc_profit').style.color=profit>=0?'var(--green)':'var(--red)';
+  document.getElementById('saleCalc').style.display='block';
+}
+
+function saveSale(){
+  const id=document.getElementById('sel_id').value;
+  const p=DB.products.find(x=>x.id===id);
+  if(!p){alert('Выберите товар!');return;}
+  const qty=+document.getElementById('sel_qty').value||0;
+  const price=+document.getElementById('sel_price').value||0;
+  if(!qty||!price){alert('Введите количество и цену!');return;}
+  if(qty>p.stock){alert(`⚠️ Недостаточно товара!\nОстаток: ${M(p.stock)} ${p.unit}`);return;}
+
+  // Собираем использованные запчасти
+  const usedParts=[];
+  for(const pt of DB.parts){
+    const pq=+document.getElementById('part_qty_'+pt.id)?.value||0;
+    if(pq>0){
+      if(pq>pt.stock){
+        if(!confirm(`⚠️ ${pt.name}: нужно ${M(pq)}, есть ${M(pt.stock)}.\nВсё равно записать?`))return;
+      }
+      usedParts.push({partId:pt.id,name:pt.name,unit:pt.unit,qty:pq,cost:pt.cost});
+    }
+  }
+
+  const total=qty*price;
+  const cost=qty*p.cost;
+  const profit=total-cost;
+
+  // Сохраняем продажу
+  DB.sales.push({
+    id:uid('s'),pid:id,pName:p.name,unit:p.unit,
+    qty,price,cost:p.cost,total,profit,
+    usedParts,
+    seller:document.getElementById('sel_seller').value.trim(),
+    client:document.getElementById('sel_client').value.trim(),
+    date:today(),datetime:nowStr()
+  });
+
+  // Списываем товар
+  p.stock=Math.max(0,p.stock-qty);
+
+  // Списываем запчасти
+  for(const u of usedParts){
+    const pt=DB.parts.find(x=>x.id===u.partId);
+    if(pt)pt.stock=Math.max(0,pt.stock-u.qty);
+  }
+
+  save();
+
+  // Сброс формы
+  document.getElementById('sel_id').value='';
+  document.getElementById('sel_search').value='';
+  document.getElementById('sel_info').style.display='none';
+  document.getElementById('sel_qty').value='';
+  document.getElementById('sel_price').value='';
+  document.getElementById('sel_seller').value='';
+  document.getElementById('sel_client').value='';
+  document.getElementById('saleCalc').style.display='none';
+  document.getElementById('partsSection').style.display='none';
+
+  renderSell();
+
+  let msg=`✅ Продажа записана!\n\n📦 ${p.name} × ${M(qty)} ${p.unit}\n💵 Сумма: ${C(total)}\n💰 Прибыль: ${C(profit)}`;
+  if(usedParts.length){
+    msg+='\n\n🔩 Списано запчастей:';
+    usedParts.forEach(u=>msg+=`\n  • ${u.name}: −${M(u.qty)} ${u.unit}`);
+  }
+  alert(msg);
+}
+
+/* ══════════ PRODUCTS ══════════ */
+let prodCatF='all';
+function renderProds(){
+  const cats=['all',...DB.catProds];
+  document.getElementById('prodCatTabs').innerHTML=cats.map(c=>`<div class="ct-btn${prodCatF===c?' on':''}" onclick="prodCatF='${c}';renderProds()">${c==='all'?'Все':c}</div>`).join('');
+  const f=(document.getElementById('prodSearch')?.value||'').toLowerCase();
+  const list=DB.products.filter(p=>(prodCatF==='all'||p.category===prodCatF)&&(!f||p.name.toLowerCase().includes(f)||(p.code||'').toLowerCase().includes(f)));
+  document.getElementById('prodsTbody').innerHTML=list.length?list.map(p=>{
+    const s=p.stock===0?'b-red':p.stock<=DB.settings.minStock?'b-orange':'b-green';
+    const sl=p.stock===0?'Нет':p.stock<=DB.settings.minStock?'Мало':'OK';
+    const mg=p.cost>0?Math.round((p.price-p.cost)/p.cost*100):0;
+    const photoHtml=p.photo?`<img src="${p.photo}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:1px solid rgba(200,168,75,.2)">`:'<div style="width:36px;height:36px;background:var(--surf3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px">📦</div>';
+    return`<tr>
+      <td>${photoHtml}</td>
+      <td style="font-size:11px;color:var(--text2)">${p.code||'—'}</td>
+      <td><b>${p.name}</b></td><td><span class="badge b-gold">${p.category}</span></td><td>${p.unit}</td>
+      <td>${C(p.cost)}</td><td>${C(p.price)}</td>
+      <td style="color:var(--green)">+${mg}%</td>
+      <td><b>${M(p.stock)}</b></td>
+      <td><span class="badge ${s}">${sl}</span></td>
+      <td style="white-space:nowrap">
+        <button class="act-btn" onclick="editProd('${p.id}')">✏️</button>
+        <button class="act-btn" onclick="askDel('prod','${p.id}')">🗑</button>
+      </td></tr>`;
+  }).join(''):'<tr><td colspan="10"><div class="empty"><div class="ei">📦</div>Нет товаров</div></td></tr>';
+}
+
+/* ══════════ PARTS ══════════ */
+function renderParts(){
+  const f=(document.getElementById('partSearch')?.value||'').toLowerCase();
+  const list=DB.parts.filter(p=>!f||p.name.toLowerCase().includes(f)||(p.code||'').toLowerCase().includes(f));
+  document.getElementById('partsTbody').innerHTML=list.length?list.map(p=>{
+    const mn=p.minStock||DB.settings.minPart;
+    const s=p.stock===0?'b-red':p.stock<=mn?'b-orange':'b-green';
+    return`<tr>
+      <td style="font-size:11px;color:var(--text2)">${p.code||'—'}</td>
+      <td><b>${p.name}</b></td><td><span class="badge b-purple">${p.category}</span></td><td>${p.unit}</td>
+      <td>${C(p.cost)}</td><td><b>${M(p.stock)}</b></td><td>${M(mn)}</td>
+      <td><span class="badge ${s}">${p.stock===0?'Нет':p.stock<=mn?'Мало':'OK'}</span></td>
+      <td>
+        <button class="act-btn" onclick="askDel('part','${p.id}')">🗑</button>
+      </td></tr>`;
+  }).join(''):'<tr><td colspan="9"><div class="empty"><div class="ei">🔩</div>Нет запчастей</div></td></tr>';
+}
+
+/* ══════════ STOCK ══════════ */
+function renderStock(){
+  // fill selects
+  document.getElementById('wk_prod').innerHTML='<option value="">— Выберите —</option>'+DB.products.map(p=>`<option value="${p.id}">${p.name} (ост: ${M(p.stock)} ${p.unit})</option>`).join('');
+  document.getElementById('wp_part').innerHTML='<option value="">— Выберите —</option>'+DB.parts.map(p=>`<option value="${p.id}">${p.name} (ост: ${M(p.stock)} ${p.unit})</option>`).join('');
+  document.getElementById('wk_date').value=today();
+  document.getElementById('wp_date').value=today();
+
+  document.getElementById('wProdTbody').innerHTML=DB.products.map(p=>{
+    const s=p.stock===0?'b-red':p.stock<=DB.settings.minStock?'b-orange':'b-green';
+    return`<tr><td style="font-size:10px;color:var(--text2)">${p.code||'—'}</td><td><b>${p.name}</b></td><td>${p.unit}</td><td><b>${M(p.stock)}</b></td><td><span class="badge ${s}">${p.stock===0?'Нет':p.stock<=DB.settings.minStock?'Мало':'OK'}</span></td></tr>`;
+  }).join('')||'<tr><td colspan="5"><div class="empty">Нет товаров</div></td></tr>';
+
+  document.getElementById('wPartTbody').innerHTML=DB.parts.map(p=>{
+    const mn=p.minStock||DB.settings.minPart;
+    const s=p.stock===0?'b-red':p.stock<=mn?'b-orange':'b-green';
+    return`<tr><td><b>${p.name}</b></td><td>${p.unit}</td><td><b>${M(p.stock)}</b></td><td><span class="badge ${s}">${p.stock===0?'Нет':p.stock<=mn?'Мало':'OK'}</span></td></tr>`;
+  }).join('')||'<tr><td colspan="4"><div class="empty">Нет запчастей</div></td></tr>';
+
+  const tot=DB.stockIn.reduce((a,s)=>a+s.total,0);
+  document.getElementById('stockChips').innerHTML=`<div class="chip">Поступлений: <b>${DB.stockIn.length}</b></div><div class="chip">Итого: <b>${C(tot)}</b></div>`;
+  document.getElementById('stockTbody').innerHTML=[...DB.stockIn].reverse().map(s=>`
+    <tr><td style="font-size:10px;color:var(--text2)">${s.date}</td>
+    <td><span class="badge ${s.type==='prod'?'b-gold':'b-purple'}">${s.type==='prod'?'📦 Товар':'🔩 Запчасть'}</span></td>
+    <td><b>${s.pName}</b></td><td>${M(s.qty)}</td><td style="color:var(--text2)">${s.unit}</td>
+    <td>${C(s.cost)}</td><td>${C(s.total)}</td><td>${s.supplier||'—'}</td></tr>`).join('')
+    ||'<tr><td colspan="8"><div class="empty">Нет поступлений</div></td></tr>';
+}
+function fillWI(){const id=document.getElementById('wk_prod').value;const p=DB.products.find(x=>x.id===id);if(p){document.getElementById('wk_cost').value=p.cost;document.getElementById('wk_sup').value=p.supplier||'';}}
+function fillWP(){const id=document.getElementById('wp_part').value;const p=DB.parts.find(x=>x.id===id);if(p){document.getElementById('wp_cost').value=p.cost;document.getElementById('wp_sup').value=p.supplier||'';}}
+function saveStockIn(type){
+  const isP=type==='prod';
+  const id=document.getElementById(isP?'wk_prod':'wp_part').value;
+  const obj=isP?DB.products.find(x=>x.id===id):DB.parts.find(x=>x.id===id);
+  if(!obj){alert('Выберите '+(isP?'товар':'запчасть')+'!');return;}
+  const qty=+document.getElementById(isP?'wk_qty':'wp_qty').value||0;
+  const cost=+document.getElementById(isP?'wk_cost':'wp_cost').value||0;
+  if(!qty){alert('Введите количество!');return;}
+  DB.stockIn.push({id:uid('sk'),type,pid:id,pName:obj.name,unit:obj.unit,qty,cost,total:qty*cost,supplier:document.getElementById(isP?'wk_sup':'wp_sup').value.trim(),date:document.getElementById(isP?'wk_date':'wp_date').value||today()});
+  obj.stock+=qty;if(cost>0)obj.cost=cost;
+  save();
+  if(isP){document.getElementById('wk_prod').value='';['wk_qty','wk_cost','wk_sup'].forEach(i=>document.getElementById(i).value='');}
+  else{document.getElementById('wp_part').value='';['wp_qty','wp_cost','wp_sup'].forEach(i=>document.getElementById(i).value='');}
+  renderStock();
+  alert(`✅ Приход записан!\n${obj.name} +${M(qty)} ${obj.unit}`);
+}
+
+/* ══════════ EXPENSES ══════════ */
+function renderExp(){
+  const mn=today().slice(0,7);
+  const mE=DB.expenses.filter(e=>e.date.startsWith(mn)).reduce((a,e)=>a+e.amount,0);
+  document.getElementById('expChips').innerHTML=`<div class="chip">Месяц: <b style="color:var(--red)">${C(mE)}</b></div><div class="chip">Всего: <b style="color:var(--red)">${C(DB.expenses.reduce((a,e)=>a+e.amount,0))}</b></div>`;
+  document.getElementById('expTbody').innerHTML=[...DB.expenses].reverse().map(e=>`
+    <tr><td style="font-size:10px;color:var(--text2)">${e.date}</td><td><span class="badge b-orange">${e.category}</span></td><td>${e.desc||'—'}</td>
+    <td class="profit-neg">${C(e.amount)}</td><td><button class="act-btn" onclick="askDel('exp','${e.id}')">🗑</button></td></tr>`).join('')
+    ||'<tr><td colspan="5"><div class="empty"><div class="ei">💸</div>Нет расходов</div></td></tr>';
+}
+
+/* ══════════ REPORTS ══════════ */
+function renderReports(){
+  const tod=today(),mn=tod.slice(0,7);
+  function calc(f){const s=DB.sales.filter(f);return{n:s.length,rev:s.reduce((a,x)=>a+x.total,0),profit:s.reduce((a,x)=>a+x.profit,0),cost:s.reduce((a,x)=>a+x.cost*x.qty,0)};}
+  function pb(d){return`<div class="pbox"><div class="pr"><span>Продаж:</span><b>${d.n}</b></div><div class="pr"><span>Выручка:</span><b>${C(d.rev)}</b></div><div class="pr"><span>Себестоимость:</span><b style="color:var(--text2)">${C(d.cost)}</b></div><div class="pr pt"><span>💰 Прибыль:</span><b>${C(d.profit)}</b></div></div>`;}
+  document.getElementById('rToday').innerHTML=pb(calc(s=>s.date===tod));
+  document.getElementById('rMonth').innerHTML=pb(calc(s=>s.date.startsWith(mn)));
+  document.getElementById('rAll').innerHTML=pb(calc(()=>true));
+  const mExp=DB.expenses.filter(e=>e.date.startsWith(mn));
+  const byCat={};mExp.forEach(e=>byCat[e.category]=(byCat[e.category]||0)+e.amount);
+  document.getElementById('rExp').innerHTML=`<div class="ebox">${Object.entries(byCat).map(([k,v])=>`<div class="pr"><span>${k}</span><b style="color:var(--red)">${C(v)}</b></div>`).join('')||'<div style="color:var(--text2);font-size:12px">Нет расходов</div>'}<div class="pr pt" style="border-color:rgba(224,82,82,.14);color:var(--red)"><span>Итого:</span><b>${C(mExp.reduce((a,e)=>a+e.amount,0))}</b></div></div>`;
+  const pm={};DB.sales.forEach(s=>{pm[s.pid]=(pm[s.pid]||{name:s.pName,profit:0});pm[s.pid].profit+=s.profit;});
+  const tops=Object.values(pm).sort((a,b)=>b.profit-a.profit).slice(0,6);
+  const mx2=tops[0]?.profit||1;
+  document.getElementById('rTop').innerHTML=tops.map((t,i)=>`<div class="top-item"><div class="top-rank">${i+1}</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div><div class="top-bar-w"><div class="top-bar" style="width:${(t.profit/mx2)*100}%"></div></div></div><div style="font-size:12px;color:var(--green);font-weight:700;white-space:nowrap">${C(t.profit)}</div></div>`).join('')||'<div class="empty">Нет данных</div>';
+  const sm={};DB.sales.forEach(s=>{sm[s.seller||'—']=(sm[s.seller||'—']||{rev:0,profit:0,n:0});sm[s.seller||'—'].rev+=s.total;sm[s.seller||'—'].profit+=s.profit;sm[s.seller||'—'].n++;});
+  document.getElementById('rSellers').innerHTML=Object.entries(sm).map(([k,v])=>`<div class="top-item"><div style="flex:1"><div style="font-size:13px;font-weight:700">${k}</div><div style="font-size:11px;color:var(--text2)">${v.n} продаж | ${C(v.rev)}</div></div><div style="color:var(--green);font-weight:700;font-size:13px">${C(v.profit)}</div></div>`).join('')||'<div class="empty">Нет данных</div>';
+}
+
+/* ══════════ SETTINGS ══════════ */
+function renderSettings(){
+  const curPass=localStorage.getItem('ah_pass')||'arthouse2024';
+  const el=document.getElementById('curPassShow');
+  if(el)el.textContent=curPass;
+  document.getElementById('s_shop').value=DB.settings.shop;
+  document.getElementById('s_cur').value=DB.settings.cur;
+  document.getElementById('s_min').value=DB.settings.minStock;
+  document.getElementById('s_minp').value=DB.settings.minPart;
+  ['catListProds','catListParts'].forEach((elId,idx)=>{
+    const cats=idx===0?DB.catProds:DB.catParts;
+    document.getElementById(elId).innerHTML=cats.map((c,i)=>`<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:var(--surf3);color:var(--text2);margin:2px">${c}<span style="cursor:pointer;color:var(--red);margin-left:3px" onclick="${idx===0?`delCat('prod',${i})`:`delCat('part',${i})`}">✕</span></span>`).join('');
+  });
+}
+function saveSettings(){DB.settings.shop=document.getElementById('s_shop').value;DB.settings.cur=document.getElementById('s_cur').value;DB.settings.minStock=+document.getElementById('s_min').value||10;DB.settings.minPart=+document.getElementById('s_minp').value||5;document.getElementById('wShop').textContent=DB.settings.shop;save();alert('✅ Сохранено!');}
+function addCat(type){const inp=document.getElementById(type==='prod'?'newCatP':'newCatPt');const v=inp.value.trim();if(!v)return;(type==='prod'?DB.catProds:DB.catParts).push(v);inp.value='';save();renderSettings();}
+function delCat(type,i){(type==='prod'?DB.catProds:DB.catParts).splice(i,1);save();renderSettings();}
+function changePass(){
+  const p1=document.getElementById('newPass1').value;
+  const p2=document.getElementById('newPass2').value;
+  if(!p1){alert('Введите новый пароль!');return;}
+  if(p1!==p2){alert('Пароли не совпадают!');return;}
+  if(p1.length<4){alert('Пароль должен быть минимум 4 символа!');return;}
+  localStorage.setItem('ah_pass',p1);
+  document.getElementById('curPassShow').textContent=p1;
+  document.getElementById('newPass1').value='';
+  document.getElementById('newPass2').value='';
+  alert('✅ Пароль изменён!\nНовый пароль: '+p1);
+}
+function clearAll(){if(confirm('⚠️ Удалить ВСЕ данные?')){DB.products=[];DB.parts=[];DB.sales=[];DB.stockIn=[];DB.expenses=[];DB.seq={p:1,pt:1,s:1,sk:1,e:1};save();renderTab(curTab);alert('Данные удалены.');}}
+
+/* ══════════ MODALS ══════════ */
+function openM(id){
+  if(id==='addProd')document.getElementById('ap_cat').innerHTML=DB.catProds.map(c=>`<option>${c}</option>`).join('');
+  if(id==='addPart')document.getElementById('pt_cat').innerHTML=DB.catParts.map(c=>`<option>${c}</option>`).join('');
+  if(id==='editProd')document.getElementById('ep_cat').innerHTML=DB.catProds.map(c=>`<option>${c}</option>`).join('');
+  if(id==='addExp')document.getElementById('ex_date').value=today();
+  document.getElementById('m-'+id).classList.add('open');
+}
+function closeM(id){document.getElementById('m-'+id).classList.remove('open');}
+
+function saveProd(){
+  const name=document.getElementById('ap_name').value.trim();if(!name){alert('Введите название!');return;}
+  const photoFile=document.getElementById('ap_photo').files[0];
+  function doSave(photoData){
+    DB.products.push({id:uid('p'),code:document.getElementById('ap_code').value.trim(),name,category:document.getElementById('ap_cat').value,unit:document.getElementById('ap_unit').value,cost:+document.getElementById('ap_cost').value||0,price:+document.getElementById('ap_price').value||0,stock:+document.getElementById('ap_stock').value||0,supplier:document.getElementById('ap_sup').value.trim(),photo:photoData||'',createdAt:today()});
+    save();closeM('addProd');
+    ['ap_code','ap_name','ap_cost','ap_price','ap_stock','ap_sup'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('ap_photo').value='';
+    document.getElementById('ap_preview').style.display='none';
+    renderProds();alert('✅ Товар добавлен!');
+  }
+  if(photoFile){
+    const reader=new FileReader();
+    reader.onload=e=>doSave(e.target.result);
+    reader.readAsDataURL(photoFile);
+  } else { doSave(''); }
+}
+function editProd(id){
+  const p=DB.products.find(x=>x.id===id);if(!p)return;
+  document.getElementById('ep_cat').innerHTML=DB.catProds.map(c=>`<option${c===p.category?' selected':''}>${c}</option>`).join('');
+  document.getElementById('ep_id').value=id;document.getElementById('ep_code').value=p.code||'';document.getElementById('ep_name').value=p.name;document.getElementById('ep_unit').value=p.unit;document.getElementById('ep_cost').value=p.cost;document.getElementById('ep_price').value=p.price;
+  // Show existing photo
+  const prevImg=document.getElementById('ep_preview_img');
+  if(p.photo&&prevImg){prevImg.src=p.photo;prevImg.style.display='block';}
+  else if(prevImg){prevImg.style.display='none';}
+  openM('editProd');
+}
+function updateProd(){
+  const id=document.getElementById('ep_id').value;const p=DB.products.find(x=>x.id===id);if(!p)return;
+  p.code=document.getElementById('ep_code').value.trim();p.name=document.getElementById('ep_name').value.trim();p.category=document.getElementById('ep_cat').value;p.unit=document.getElementById('ep_unit').value;p.cost=+document.getElementById('ep_cost').value||0;p.price=+document.getElementById('ep_price').value||0;
+  const photoFile=document.getElementById('ep_photo').files[0];
+  function doUpdate(){save();closeM('editProd');renderProds();}
+  if(photoFile){
+    const reader=new FileReader();
+    reader.onload=e=>{p.photo=e.target.result;doUpdate();};
+    reader.readAsDataURL(photoFile);
+  } else { doUpdate(); }
+}
+function savePart(){
+  const name=document.getElementById('pt_name').value.trim();if(!name){alert('Введите название!');return;}
+  DB.parts.push({id:uid('pt'),code:document.getElementById('pt_code').value.trim(),name,category:document.getElementById('pt_cat').value,unit:document.getElementById('pt_unit').value,cost:+document.getElementById('pt_cost').value||0,stock:+document.getElementById('pt_stock').value||0,minStock:+document.getElementById('pt_min').value||5,supplier:document.getElementById('pt_sup').value.trim(),createdAt:today()});
+  save();closeM('addPart');['pt_code','pt_name','pt_cost','pt_stock','pt_min','pt_sup'].forEach(i=>document.getElementById(i).value='');renderParts();alert('✅ Запчасть добавлена!');
+}
+function saveExp(){
+  const amt=+document.getElementById('ex_amt').value||0;if(!amt){alert('Введите сумму!');return;}
+  DB.expenses.push({id:uid('e'),category:document.getElementById('ex_cat').value,desc:document.getElementById('ex_desc').value.trim(),amount:amt,date:document.getElementById('ex_date').value||today()});
+  save();closeM('addExp');renderExp();
+}
+
+let _delFn=null;
+function askDel(type,id){
+  const labels={prod:'этот товар',part:'эту запчасть',sale:'эту продажу',exp:'этот расход'};
+  document.getElementById('confirmMsg').textContent=`Удалить ${labels[type]||''}?`;
+  _delFn=()=>{
+    if(type==='prod'){DB.products=DB.products.filter(x=>x.id!==id);}
+    else if(type==='part'){DB.parts=DB.parts.filter(x=>x.id!==id);}
+    else if(type==='sale'){const s=DB.sales.find(x=>x.id===id);if(s){const p=DB.products.find(x=>x.id===s.pid);if(p)p.stock+=s.qty;(s.usedParts||[]).forEach(u=>{const pt=DB.parts.find(x=>x.id===u.partId);if(pt)pt.stock+=u.qty;});}DB.sales=DB.sales.filter(x=>x.id!==id);}
+    else if(type==='exp'){DB.expenses=DB.expenses.filter(x=>x.id!==id);}
+    save();closeM('confirm');renderTab(curTab);
+  };
+  document.getElementById('confirmBtn').onclick=_delFn;
+  openM('confirm');
+}
+
+/* ══════════ INIT ══════════ */
+document.getElementById('dtag').textContent=new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+async function init(){
+  await load();
+  document.getElementById('wShop').textContent=DB.settings.shop;
+  renderDash();
+}
+init();
+
+// ═══ ПАРОЛЬ ═══
+const DEFAULT_PASS = 'arthouse2024';
+function checkPass(){
+  const input = document.getElementById('passInput').value;
+  const savedPass = localStorage.getItem('ah_pass') || DEFAULT_PASS;
+  if(input === savedPass){
+    document.getElementById('passScreen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    sessionStorage.setItem('ah_logged','1');
+  } else {
+    document.getElementById('passErr').style.display='block';
+    document.getElementById('passInput').value='';
+    document.getElementById('passInput').focus();
+  }
+}
+// Auto login if already logged in this session
+// Check session - auto login if already logged in
+if(sessionStorage.getItem('ah_logged')==='1'){
+  if(document.getElementById('passScreen'))document.getElementById('passScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+} else {
+  // Make sure app is hidden
+  document.getElementById('app').style.display='none';
+}
+
+// ═══ PWA INSTALL ═══
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById('installBtn').style.display='flex';
+});
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('installBtn').style.display='none';
+  deferredPrompt=null;
+});
+async function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const r=await deferredPrompt.userChoice;
+    deferredPrompt=null;
+    document.getElementById('installBtn').style.display='none';
+  } else {
+    alert('Чтобы установить приложение:\n\n📱 iPhone/iPad:\nНажмите кнопку "Поделиться" (квадрат со стрелкой) → "На экран Домой"\n\n🤖 Android:\nНажмите меню (три точки) → "Добавить на главный экран"');
+  }
+}
+
+// Register service worker for offline
+if('serviceWorker' in navigator){
+  const swCode=`
+    const CACHE='arthouse-v1';
+    const FILES=['/'];
+    self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
+    self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('/')))));
+  `;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  const swUrl=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+</script>
+
+</div><!-- /app -->
+<!-- INSTALL BUTTON -->
+<div id="installBtn" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999">
+  <button onclick="installApp()" style="
+    background:linear-gradient(135deg,#C8A84B,#E8D08A);
+    color:#111;border:none;border-radius:50px;
+    padding:12px 22px;font-family:Mulish,sans-serif;
+    font-weight:800;font-size:14px;cursor:pointer;
+    box-shadow:0 4px 20px rgba(200,168,75,.4);
+    display:flex;align-items:center;gap:8px;
+  ">
+    📲 Установить приложение
+  </button>
+</div>
+
+<!-- iOS INSTALL HINT -->
+<div id="iosHint" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1E2130;border-top:1px solid rgba(200,168,75,.2);padding:14px 20px;z-index:9999;text-align:center">
+  <div style="font-size:13px;color:#F2EDD8;font-weight:700">📲 Установить ART HOUSE</div>
+  <div style="font-size:12px;color:#A8A090;margin-top:4px">Нажмите <b style="color:#C8A84B">Поделиться</b> → <b style="color:#C8A84B">На экран Домой</b></div>
+  <button onclick="document.getElementById('iosHint').style.display='none'" style="margin-top:8px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);color:#C8A84B;border-radius:7px;padding:5px 16px;cursor:pointer;font-size:12px;font-weight:700">Закрыть</button>
+</div>
+
+<script>
+// Show iOS hint
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+const isStandalone=window.navigator.standalone;
+if(isIOS&&!isStandalone){
+  setTimeout(()=>{document.getElementById('iosHint').style.display='block';},2000);
+}
+</script>
+</body>
+</html>
